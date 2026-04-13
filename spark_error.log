@@ -1,0 +1,12 @@
+WARNING: Using incubator modules: jdk.incubator.vector
+26/02/20 15:51:04 WARN NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+Exception in thread "main" org.apache.spark.SparkException: Failed to get main class in JAR with error 'File file:/opt/spark/work-dir/... does not exist'.  Please specify one with --class.
+	at org.apache.spark.deploy.SparkSubmit.error(SparkSubmit.scala:1065)
+	at org.apache.spark.deploy.SparkSubmit.prepareSubmitEnvironment(SparkSubmit.scala:547)
+	at org.apache.spark.deploy.SparkSubmit.org$apache$spark$deploy$SparkSubmit$$runMain(SparkSubmit.scala:962)
+	at org.apache.spark.deploy.SparkSubmit.doRunMain$1(SparkSubmit.scala:203)
+	at org.apache.spark.deploy.SparkSubmit.submit(SparkSubmit.scala:226)
+	at org.apache.spark.deploy.SparkSubmit.doSubmit(SparkSubmit.scala:95)
+	at org.apache.spark.deploy.SparkSubmit$$anon$2.doSubmit(SparkSubmit.scala:1168)
+	at org.apache.spark.deploy.SparkSubmit$.main(SparkSubmit.scala:1177)
+	at org.apache.spark.deploy.SparkSubmit.main(SparkSubmit.scala)
