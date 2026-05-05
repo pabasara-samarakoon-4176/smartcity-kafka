@@ -1,6 +1,6 @@
 import os
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, from_json, to_timestamp, window, avg, count, to_json, struct, sum, min, round
+from pyspark.sql.functions import col, from_json, to_timestamp, window, avg, count, to_json, struct, sum, min, round, to_date
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, DoubleType, TimestampType
 
 KAFKA_BROKERS = "kafka:29092"
@@ -69,7 +69,6 @@ def process_and_split_stream(df):
             count("*").alias("total_readings")
         ) \
         .withColumn(
-            # Congestion Index: A simple example (e.g., total vehicles / avg speed)
             "congestion_index", 
             round(col("total_vehicles") / (col("window_avg_speed") + 0.01), 2)
         ) \
@@ -96,12 +95,16 @@ def process_and_split_stream(df):
 def write_parquet_stream(df):
     """Writes the aggregated stream to Parquet files, partitioned by date/time."""
     print("Starting Parquet Write Stream...")
+    df = df.withColumn(
+        "traffic_date",
+        to_date(col("window_start"))
+    )
     parquet_query = df.writeStream \
         .format("parquet") \
         .outputMode("append") \
         .option("path", AGGREGATES_PATH) \
         .option("checkpointLocation", f"{AGGREGATES_PATH}_checkpoint") \
-        .partitionBy("sensor_id", "window_start") \
+        .partitionBy("traffic_date", "sensor_id") \
         .trigger(processingTime='1 minute') \
         .start()
     return parquet_query

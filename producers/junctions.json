@@ -1,0 +1,18 @@
+{
+  "Borella": {"base_volume": 100, "base_speed": 30},
+  "Pettah": {"base_volume": 150, "base_speed": 25},
+  "Maradana": {"base_volume": 120, "base_speed": 28},
+  "Bambalapitiya": {"base_volume": 80, "base_speed": 35},
+  "Kollupitiya": {"base_volume": 90, "base_speed": 32},
+  "Fort": {"base_volume": 110, "base_speed": 27},
+  "SlaveIsland": {"base_volume": 70, "base_speed": 40},
+  "Kirulapone": {"base_volume": 60, "base_speed": 38},
+  "Nugegoda": {"base_volume": 130, "base_speed": 22},
+  "Kohuwala": {"base_volume": 50, "base_speed": 45},
+  "Pamankada": {"base_volume": 40, "base_speed": 42},
+  "Rajagiriya": {"base_volume": 140, "base_speed": 20},
+  "Battaramulla": {"base_volume": 75, "base_speed": 37},
+  "Peliyagoda": {"base_volume": 160, "base_speed": 18},
+  "Dematagoda": {"base_volume": 85, "base_speed": 33},
+  "Kelaniya": {"base_volume": 95, "base_speed": 30}
+}

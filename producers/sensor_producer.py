@@ -4,6 +4,9 @@ import random
 import os
 from datetime import datetime, timezone
 from kafka import KafkaProducer
+from dotenv import load_dotenv
+
+load_dotenv()
 
 KAFKA_BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP", "localhost:9092")
 TOPIC = os.getenv("KAFKA_TOPIC", "raw-traffic")
@@ -20,18 +23,51 @@ def create_producer():
     )
 
 def gen_reading(sensor_id):
-    if random.random() < CRITICAL_PROB:
-        avg_speed = random.uniform(3.0, 9.5)
-    else:
-        avg_speed = max(0.0, random.gauss(30, 8))
-    vehicle_count = max(0, int(random.gauss(8, 3)))
+    simulated_hour = datetime.now().minute % 24
+    base_date = datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0)
+    simulated_timestamp = base_date.replace(hour=simulated_hour)
 
-    return {
-        "sensor_id": sensor_id,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "vehicle_count": vehicle_count,
-        "avg_speed": round(avg_speed, 2),
-    }
+    with open("producers/junctions.json", "r") as f:
+        JUNCTION_PROFILES = json.load(f)
+
+        profile = JUNCTION_PROFILES.get(sensor_id, {})
+
+        if 7 <= simulated_hour <= 9:         # Morning rush
+            traffic_factor = 2.2
+        elif 12 <= simulated_hour <= 14:     # Midday
+            traffic_factor = 1.5
+        elif 17 <= simulated_hour <= 19:     # Evening rush
+            traffic_factor = 2.5
+        elif 22 <= simulated_hour or simulated_hour <= 5:
+            traffic_factor = 0.5             # Night
+        else:
+            traffic_factor = 1.0
+
+        vehicle_count = int(
+            random.gauss(
+                profile["base_volume"] * traffic_factor,
+                profile["base_volume"] * 0.15
+            )
+        )
+
+        vehicle_count = max(5, vehicle_count)
+
+        if random.random() < CRITICAL_PROB:
+            avg_speed = random.uniform(3.0, 9.5)
+        else:
+            avg_speed = random.gauss(
+                profile["base_speed"] / traffic_factor,
+                3
+            )
+
+        avg_speed = max(2.0, avg_speed)
+
+        return {
+            "sensor_id": sensor_id,
+            "timestamp": simulated_timestamp.isoformat(),
+            "vehicle_count": vehicle_count,
+            "avg_speed": round(avg_speed, 2),
+        }
 
 def run():
     p = create_producer()
