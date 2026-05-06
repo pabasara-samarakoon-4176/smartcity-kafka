@@ -42,7 +42,7 @@ def load_batch_report():
     )
 
 
-@st.cache_data(ttl=5)
+@st.cache_data(ttl=30)
 def load_live_data():
     all_files = glob.glob(f"{LIVE_DATA_PATH}/**/*.parquet", recursive=True)
     if not all_files:
@@ -50,6 +50,9 @@ def load_live_data():
 
     dfs = []
     for f in all_files:
+        if not f.endswith(".parquet"):
+            continue
+
         try:
             df = pl.read_parquet(f)
             path_parts = f.split(os.sep)
@@ -65,7 +68,16 @@ def load_live_data():
         except Exception as e:
             continue
 
-    return pl.concat(dfs).to_pandas() if dfs else None
+    if not dfs:
+        return None
+
+    df = pl.concat(dfs)
+
+    latest_df = (
+        df.sort("window_start").group_by("sensor_id").last()
+    )
+
+    return latest_df.to_pandas()
 
 # ----------------------------
 # Live Stream Section

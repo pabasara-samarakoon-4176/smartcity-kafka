@@ -2,7 +2,7 @@ import json
 import time
 import random
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from kafka import KafkaProducer
 from dotenv import load_dotenv
 
@@ -15,6 +15,13 @@ INTERVAL_SEC = float(os.getenv("INTERVAL_SEC", "1.0"))
 CRITICAL_PROB = float(os.getenv("CRITICAL_PROB", "0.05"))
 FREE_FLOW = float(os.getenv("FREE_FLOW", "40.0"))
 
+SIM_TIME = datetime.now(timezone.utc).replace(
+    hour=0,
+    minute=0,
+    second=0,
+    microsecond=0
+)
+
 def create_producer():
     return KafkaProducer(
         bootstrap_servers=[KAFKA_BOOTSTRAP],
@@ -22,10 +29,8 @@ def create_producer():
         key_serializer=lambda k: k.encode("utf-8"),
     )
 
-def gen_reading(sensor_id):
-    simulated_hour = datetime.now().minute % 24
-    base_date = datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0)
-    simulated_timestamp = base_date.replace(hour=simulated_hour)
+def gen_reading(sensor_id, sim_time):
+    simulated_hour = sim_time.hour
 
     with open("producers/junctions.json", "r") as f:
         JUNCTION_PROFILES = json.load(f)
@@ -64,20 +69,23 @@ def gen_reading(sensor_id):
 
         return {
             "sensor_id": sensor_id,
-            "timestamp": simulated_timestamp.isoformat(),
+            "timestamp": sim_time.isoformat(),
             "vehicle_count": vehicle_count,
             "avg_speed": round(avg_speed, 2),
         }
 
 def run():
+    global SIM_TIME
     p = create_producer()
     print(f"Producing to {TOPIC} -> {KAFKA_BOOTSTRAP}. Sensors: {SENSORS}. Interval: {INTERVAL_SEC}s :: Critical Prob: {CRITICAL_PROB}")
     try:
         while True:
             for s in SENSORS:
-                payload = gen_reading(s)
+                payload = gen_reading(s, SIM_TIME)
                 p.send(TOPIC, key=s, value=payload)
             p.flush()
+
+            SIM_TIME += timedelta(minutes=1)
             time.sleep(INTERVAL_SEC)
     except KeyboardInterrupt:
         print("Shutting down producer.")
