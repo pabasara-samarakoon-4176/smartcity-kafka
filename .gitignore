@@ -5,3 +5,4 @@ spark_dist/*
 dags/__pycache__/traffic_batch_dag.cpython-38.pyc
 spark-4.1.1-bin-hadoop3.tgz
 data/.DS_Store
+.DS_Store
